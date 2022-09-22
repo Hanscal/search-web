@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
+import requests
 from flask import Flask
 
 app = Flask(__name__)
@@ -12,6 +14,7 @@ from flask import Flask, request, render_template
 from flask_cors import CORS
 
 from src.tools import Trie, clean_space
+from config.config import semantic_search_url
 
 logger = logging
 app = Flask(__name__,template_folder='templates',static_folder='static')
@@ -33,11 +36,16 @@ def search():
     if request.method == 'POST':
         b0 = time.time()
         question = request.args["key"]
-        answer = ''
+        if not question.strip():
+            return render_template("index.html")
+        answer = requests.post(semantic_search_url, data=json.dumps({'msg':question}))
+        ret = {'response': []}
         # answer替换response中的内容
+        for item in answer.json()['answer']:
+            ret['response'].append({"name":item['title'], "abstract": item['para']})
         logger.info('total costs {:.2f}s'.format(time.time() - b0))
         # answer = str({"response":answer,"intent":{"name":intent_name, "confidence":intent_confidence}, "entities":entities, "faq_match":faq_dict})
-        return {'response': [{"name":"hanscal", "abstract":"abstract of first doc"},{"name":"Tom", "abstract":"abstract of second doc"}]}
+        return ret
 
     return render_template("index.html")
 

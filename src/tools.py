@@ -6,8 +6,8 @@
 @Email   : hua.cai@unidt.com
 """
 import re
-
-queries = ["Python", "Python web", "Python开发", "Python web开发视频教程"]
+from config.config import question_path
+# queries = ["Python", "Python web", "Python开发", "Python web开发视频教程"]
 
 def clean_space(text):
   """"
@@ -31,8 +31,14 @@ class Trie(object):
         """
         self.root = {}
         self.end = -1
-        for i in queries:
-            self.insert(i)
+        self.load_question()
+
+    def load_question(self):
+        with open(question_path, 'r') as fr:
+            for item in fr.readlines():
+                if not item.strip():
+                    continue
+                self.insert(item.strip())
 
     def insert(self, word):
         """
